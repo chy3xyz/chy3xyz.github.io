@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chy3xyz</title>
+<meta name="description" content="chy3xyz — building in Zig. Projects, notes, and things shipped.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9881;</text></svg>">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #262d36;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --zig: #f7a41d;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ffffff;
+      --surface: #f6f8fa;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #636c76;
+      --accent: #0969da;
+      --zig: #b06f00;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+  header { padding: 88px 0 56px; border-bottom: 1px solid var(--border); }
+  .logo {
+    font-size: 44px; line-height: 1; margin-bottom: 20px;
+  }
+  h1 { font-size: 38px; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .tagline { font-size: 18px; color: var(--muted); margin: 0 0 24px; max-width: 60ch; }
+  .zig { color: var(--zig); }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .links a {
+    display: inline-block; padding: 7px 15px; border: 1px solid var(--border);
+    border-radius: 999px; color: var(--text); text-decoration: none;
+    font-size: 14px; transition: border-color .15s, color .15s;
+  }
+  .links a:hover { border-color: var(--accent); color: var(--accent); }
+  .stats { display: flex; gap: 28px; margin-top: 28px; font-size: 14px; color: var(--muted); }
+  .stats b { color: var(--text); font-weight: 600; }
+
+  section { padding: 52px 0; border-bottom: 1px solid var(--border); }
+  h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); margin: 0 0 26px; font-weight: 600;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card {
+    display: block; padding: 18px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface); text-decoration: none;
+    color: inherit; transition: border-color .15s, transform .15s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card h3 { margin: 0 0 7px; font-size: 16px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .card p { margin: 0 0 12px; font-size: 14px; color: var(--muted); line-height: 1.5; }
+  .meta { font-size: 12px; color: var(--muted); }
+
+  .filter {
+    width: 100%; padding: 11px 14px; margin-bottom: 18px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--text); font-size: 14px; font-family: inherit;
+  }
+  .filter:focus { outline: none; border-color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    text-align: left; padding: 9px 10px; color: var(--muted);
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border); font-weight: 600;
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:hover { background: var(--surface); }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .desc { color: var(--muted); }
+  .lang, .num, .date, .site { white-space: nowrap; color: var(--muted); font-size: 13px; }
+  .num, .date { text-align: right; }
+  .muted { color: var(--muted); }
+
+  footer { padding: 36px 0 56px; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 640px) {
+    header { padding: 56px 0 40px; }
+    h1 { font-size: 30px; }
+    .lang, .date { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">🦋</div>
+      <h1>chy3xyz</h1>
+      <p class="tagline">Mostly <span class="zig">Zig</span>. Compilers, runtimes, web frameworks, and small tools — built one small piece at a time.</p>
+      <div class="links">
+        <a href="https://github.com/chy3xyz">GitHub</a>
+        <a href="https://chy3.xyz">chy3.xyz</a>
+        <a href="https://github.com/chy3xyz/ghw">GHW</a>
+        <a href="https://zine-ssg.io">zdoc</a>
+      </div>
+      <div class="stats">
+        <span><b>72</b> public repos</span>
+        <span><b>12</b> followers</span>
+        <span>Since <b>2025</b></span>
+      </div>
+    </header>
+
+    <section>
+      <h2>Featured</h2>
+      <div class="grid">
+      <a class="card" href="https://chy3xyz.github.io/ghw" target="_blank" rel="noopener">
+        <h3>ghw ↗</h3>
+        <p>GHW — Goal-Harness-World digital life framework: LLM proposes, the digital life decides. Zig, zero deps, L1-L5 self-evolution, bounded by math.</p>
+        <div class="meta">Zig</div>
+      </a>
+      <a class="card" href="https://zine-ssg.io" target="_blank" rel="noopener">
+        <h3>zdoc ↗</h3>
+        <p>Fast, Scalable, Flexible Static Site Generator (SSG)</p>
+        <div class="meta">Zig</div>
+      </a>
+      <a class="card" href="https://github.com/chy3xyz/zigmodu" target="_blank" rel="noopener">
+        <h3>zigmodu</h3>
+        <p>Compile-time Modular Application Framework + Worker-oriented High-Performance Runtime for Zig</p>
+        <div class="meta">Zig · ★ 3</div>
+      </a>
+      <a class="card" href="https://github.com/chy3xyz/zent" target="_blank" rel="noopener">
+        <h3>zent</h3>
+        <p>zig orm</p>
+        <div class="meta">Zig</div>
+      </a>
+      <a class="card" href="https://github.com/chy3xyz/zwechat" target="_blank" rel="noopener">
+        <h3>zwechat</h3>
+        <p>a zig wechat sdk</p>
+        <div class="meta">Zig</div>
+      </a>
+      <a class="card" href="https://github.com/chy3xyz/zwasm" target="_blank" rel="noopener">
+        <h3>zwasm</h3>
+        <p>A fast, spec-compliant WebAssembly runtime written in Zig</p>
+        <div class="meta">Zig</div>
+      </a>
+      <a class="card" href="https://github.com/chy3xyz/zcordis" target="_blank" rel="noopener">
+        <h3>zcordis</h3>
+        <p>a zig cordis meta framework</p>
+        <div class="meta">Zig</div>
+      </a>
+      <a class="card" href="https://github.com/chy3xyz/zenaipa" target="_blank" rel="noopener">
+        <h3>zenaipa</h3>
+        <p>a rapid zigmodu web startkit </p>
+        <div class="meta">Zig · ★ 1</div>
+      </a>
+      </div>
+    </section>
+
+    <section>
+      <h2>All repositories (72)</h2>
+      <input class="filter" id="q" type="search" placeholder="Filter by name or description…" autocomplete="off">
+      <table>
+        <thead>
+          <tr>
+            <th>Repo</th><th>Description</th><th class="lang">Lang</th>
+            <th class="num">★</th><th class="date">Updated</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+      <tr>
+        <td><a href="https://github.com/chy3xyz/ghw" target="_blank" rel="noopener">ghw</a></td>
+        <td class="desc">GHW — Goal-Harness-World digital life framework: LLM proposes, the digital life decides. Zig, zero deps, L1-L5 self-evolution, bounded by math.</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">today</td>
+        <td><a class="site" href="https://chy3xyz.github.io/ghw" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zdoc" target="_blank" rel="noopener">zdoc</a></td>
+        <td class="desc">Fast, Scalable, Flexible Static Site Generator (SSG)</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">today</td>
+        <td><a class="site" href="https://zine-ssg.io" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zigmodu.github.io" target="_blank" rel="noopener">zigmodu.github.io</a></td>
+        <td class="desc">Documentation site for the ZigModu modular framework (Astro)</td>
+        <td class="lang">Astro</td>
+        <td class="num">0</td>
+        <td class="date">today</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zigmodu" target="_blank" rel="noopener">zigmodu</a></td>
+        <td class="desc">Compile-time Modular Application Framework + Worker-oriented High-Performance Runtime for Zig</td>
+        <td class="lang">Zig</td>
+        <td class="num">3</td>
+        <td class="date">today</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zwechat" target="_blank" rel="noopener">zwechat</a></td>
+        <td class="desc">a zig wechat sdk</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">today</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zent" target="_blank" rel="noopener">zent</a></td>
+        <td class="desc">zig orm</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">today</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zenaipa" target="_blank" rel="noopener">zenaipa</a></td>
+        <td class="desc">a rapid zigmodu web startkit </td>
+        <td class="lang">Zig</td>
+        <td class="num">1</td>
+        <td class="date">1 day ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zigzero" target="_blank" rel="noopener">zigzero</a></td>
+        <td class="desc"><span class="muted">—</span></td>
+        <td class="lang">Zig</td>
+        <td class="num">1</td>
+        <td class="date">1 day ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zharness" target="_blank" rel="noopener">zharness</a></td>
+        <td class="desc">a zig harness tools</td>
+        <td class="lang">TypeScript</td>
+        <td class="num">0</td>
+        <td class="date">1 day ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zcordis" target="_blank" rel="noopener">zcordis</a></td>
+        <td class="desc">a zig cordis meta framework</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">1 day ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zwasm" target="_blank" rel="noopener">zwasm</a></td>
+        <td class="desc">A fast, spec-compliant WebAssembly runtime written in Zig</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">1 day ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zweq" target="_blank" rel="noopener">zweq</a></td>
+        <td class="desc">a zig wechat app framework</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">1 day ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zbp-skill" target="_blank" rel="noopener">zbp-skill</a></td>
+        <td class="desc">Zig Best Practice Skills</td>
+        <td class="lang">Zig</td>
+        <td class="num">1</td>
+        <td class="date">3 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zfinal" target="_blank" rel="noopener">zfinal</a></td>
+        <td class="desc">Zig web tools</td>
+        <td class="lang">Zig</td>
+        <td class="num">1</td>
+        <td class="date">6 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zsandbox" target="_blank" rel="noopener">zsandbox</a></td>
+        <td class="desc">a zig sandbox</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">6 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zponder" target="_blank" rel="noopener">zponder</a></td>
+        <td class="desc">a zig ponder</td>
+        <td class="lang">C</td>
+        <td class="num">0</td>
+        <td class="date">6 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zcli" target="_blank" rel="noopener">zcli</a></td>
+        <td class="desc"><span class="muted">—</span></td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">7 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zeepseek" target="_blank" rel="noopener">zeepseek</a></td>
+        <td class="desc">a zig actor</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">7 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zgraphql" target="_blank" rel="noopener">zgraphql</a></td>
+        <td class="desc">zig graphql lib</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">7 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zhttp" target="_blank" rel="noopener">zhttp</a></td>
+        <td class="desc">A zig HTTP 1.1 / HTTP 2 / HTTP3  server and client</td>
+        <td class="lang">Zig</td>
+        <td class="num">1</td>
+        <td class="date">7 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zjev" target="_blank" rel="noopener">zjev</a></td>
+        <td class="desc">A Typed Probabilistic Decision Runtime for AI agent</td>
+        <td class="lang">Zig</td>
+        <td class="num">1</td>
+        <td class="date">11 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/1person" target="_blank" rel="noopener">1person</a></td>
+        <td class="desc">a 1person ai pms</td>
+        <td class="lang">TypeScript</td>
+        <td class="num">0</td>
+        <td class="date">12 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/ztao" target="_blank" rel="noopener">ztao</a></td>
+        <td class="desc">a AI pms tools</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">14 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/z1api" target="_blank" rel="noopener">z1api</a></td>
+        <td class="desc">1 api</td>
+        <td class="lang">JavaScript</td>
+        <td class="num">1</td>
+        <td class="date">15 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/chy3one" target="_blank" rel="noopener">chy3one</a></td>
+        <td class="desc">one</td>
+        <td class="lang">TypeScript</td>
+        <td class="num">0</td>
+        <td class="date">15 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/chy3xyz" target="_blank" rel="noopener">chy3xyz</a></td>
+        <td class="desc">chy3xyz</td>
+        <td class="lang">Astro</td>
+        <td class="num">0</td>
+        <td class="date">20 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zetl" target="_blank" rel="noopener">zetl</a></td>
+        <td class="desc">a zig ETL tool</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">24 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zasdoor" target="_blank" rel="noopener">zasdoor</a></td>
+        <td class="desc">a</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">28 days ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/httpz.zig" target="_blank" rel="noopener">httpz.zig</a></td>
+        <td class="desc">A Zig HTTP 1.1 and HTTP 2 Server and Client</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/luopan" target="_blank" rel="noopener">luopan</a></td>
+        <td class="desc">The operations compass for the post-AI era</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/uniapp-x-skill" target="_blank" rel="noopener">uniapp-x-skill</a></td>
+        <td class="desc">UniApp X（uni-app x）</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/saas-solidjs" target="_blank" rel="noopener">saas-solidjs</a></td>
+        <td class="desc">saas solidjs template</td>
+        <td class="lang">TypeScript</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zdeadcode" target="_blank" rel="noopener">zdeadcode</a></td>
+        <td class="desc">a zig dead code check tool</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zmodu" target="_blank" rel="noopener">zmodu</a></td>
+        <td class="desc">tools for zigmodu</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zero-native" target="_blank" rel="noopener">zero-native</a></td>
+        <td class="desc">Build desktop + mobile apps with Zig and web UI</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td><a class="site" href="https://zero-native.dev" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/hatax" target="_blank" rel="noopener">hatax</a></td>
+        <td class="desc">Production-ready admin dashboard — Vite + Alpine.js + HTMX + Tailwind CSS. 13KB business logic, 18 pages, build-time layout injection.</td>
+        <td class="lang">HTML</td>
+        <td class="num">1</td>
+        <td class="date">2 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/eth.zig" target="_blank" rel="noopener">eth.zig</a></td>
+        <td class="desc">Zig Ethereum client library. Faster than alloy.rs on 20/26 benchmarks.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">2 months ago</td>
+        <td><a class="site" href="https://ethzig.org" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/chynote" target="_blank" rel="noopener">chynote</a></td>
+        <td class="desc">zig note</td>
+        <td class="lang">TypeScript</td>
+        <td class="num">0</td>
+        <td class="date">3 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zdbx" target="_blank" rel="noopener">zdbx</a></td>
+        <td class="desc">a zig dbx</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">3 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zsl" target="_blank" rel="noopener">zsl</a></td>
+        <td class="desc">A scientific computing library written in Zig</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">3 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/sailor" target="_blank" rel="noopener">sailor</a></td>
+        <td class="desc">Zig TUI framework &amp; CLI toolkit</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zeepx" target="_blank" rel="noopener">zeepx</a></td>
+        <td class="desc">fork from deepx, for other</td>
+        <td class="lang">Go</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/autocli" target="_blank" rel="noopener">autocli</a></td>
+        <td class="desc">zig autocli</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/deepx-code" target="_blank" rel="noopener">deepx-code</a></td>
+        <td class="desc">deepseek标配coding agent、原生支持CodeGraph代码图谱、OCR截图识别、TUI交互、额外WebUI服务、自动上下文压缩、根本上节省Token</td>
+        <td class="lang">Go</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td><a class="site" href="https://itmisx.github.io/deepx-code/" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zopcode" target="_blank" rel="noopener">zopcode</a></td>
+        <td class="desc">a zig opencode playtoy</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/alook" target="_blank" rel="noopener">alook</a></td>
+        <td class="desc">The collaboration layer for your AI workforce. Run a team of AI agents that coordinate over email, share memory, and get better with every task.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td><a class="site" href="https://alook.ai" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zelfagent" target="_blank" rel="noopener">zelfagent</a></td>
+        <td class="desc">self-evolving agent  by zig</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zaibase" target="_blank" rel="noopener">zaibase</a></td>
+        <td class="desc">a zig AI dev base code</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zigzag" target="_blank" rel="noopener">zigzag</a></td>
+        <td class="desc">A delightful TUI framework for Zig</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/jiuwenswarm" target="_blank" rel="noopener">jiuwenswarm</a></td>
+        <td class="desc">JiuwenSwarm is an intelligent AI Agent built on openJiuwen. It extends the powerful capabilities of large language models directly to your fingertips through various communication apps you use daily.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/openzim" target="_blank" rel="noopener">openzim</a></td>
+        <td class="desc">a open zig im</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zigdbc" target="_blank" rel="noopener">zigdbc</a></td>
+        <td class="desc">zig db connector</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zdbc" target="_blank" rel="noopener">zdbc</a></td>
+        <td class="desc">Zig Database Connector</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zig-http-concurrent" target="_blank" rel="noopener">zig-http-concurrent</a></td>
+        <td class="desc">Production-grade concurrent HTTP client for Zig 0.16.0 with retry engine and circuit breaker. The canonical solution to the segfault problem.</td>
+        <td class="lang">Zig</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td><a class="site" href="https://quantumencoding.io" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/openhuman" target="_blank" rel="noopener">openhuman</a></td>
+        <td class="desc">Your Personal AI super intelligence. Private, Simple and extremely powerful.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td><a class="site" href="https://tinyhumans.ai/openhuman" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/libvaxis" target="_blank" rel="noopener">libvaxis</a></td>
+        <td class="desc">a modern tui library written in zig</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td><a class="site" href="https://rockorager.github.io/libvaxis/" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/react-pretext-editor" target="_blank" rel="noopener">react-pretext-editor</a></td>
+        <td class="desc">React Editor that uses the amazing Pretext library for some layout magic</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">4 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/Personal_AI_Infrastructure" target="_blank" rel="noopener">Personal_AI_Infrastructure</a></td>
+        <td class="desc">Agentic AI Infrastructure for magnifying HUMAN capabilities.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/rszero" target="_blank" rel="noopener">rszero</a></td>
+        <td class="desc">rust micro service framework</td>
+        <td class="lang">Rust</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/turbodb" target="_blank" rel="noopener">turbodb</a></td>
+        <td class="desc">TurboDB — a blazing-fast NoSQL document database written in Zig. mmap + WAL + B-tree + MVCC.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zockdb" target="_blank" rel="noopener">zockdb</a></td>
+        <td class="desc">a state, intent db</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zim" target="_blank" rel="noopener">zim</a></td>
+        <td class="desc">a zig im</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zbox" target="_blank" rel="noopener">zbox</a></td>
+        <td class="desc">Minimal Linux sandbox written in Zig.  Allows the execution of a program in an isolated environment fs/net/proc/namespace isolation and root protection, eBPF seccomp filtering,  and resource control</td>
+        <td class="lang">Zig</td>
+        <td class="num">1</td>
+        <td class="date">5 months ago</td>
+        <td><a class="site" href="https://www.bxrne.com/projects/zbox" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/expo-pretext" target="_blank" rel="noopener">expo-pretext</a></td>
+        <td class="desc">Predict React Native text heights before rendering. Native TextKit/TextPaint measurement + ~0.0002ms JS layout. FlashList, streaming AI chat, typewriter, pinch-to-zoom, obstacle reflow, Dynamic Type, Expo Web. 386 tests. MIT.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td><a class="site" href="https://www.npmjs.com/package/expo-pretext" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/websocket" target="_blank" rel="noopener">websocket</a></td>
+        <td class="desc">Patched websocket.zig fork for nullclaw</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/wasm3" target="_blank" rel="noopener">wasm3</a></td>
+        <td class="desc">Patched wasm3 package for nullclaw</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/zig-mcp" target="_blank" rel="noopener">zig-mcp</a></td>
+        <td class="desc">Zig ZLS MCP for Claude Code 🤖</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">5 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/xfinalw3" target="_blank" rel="noopener">xfinalw3</a></td>
+        <td class="desc">web3 dev kit, svletkit</td>
+        <td class="lang">Solidity</td>
+        <td class="num">1</td>
+        <td class="date">7 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/openwork" target="_blank" rel="noopener">openwork</a></td>
+        <td class="desc">An open-source alternative to Claude Cowork, powered by opencode</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">8 months ago</td>
+        <td><a class="site" href="https://openwork.software" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/vai" target="_blank" rel="noopener">vai</a></td>
+        <td class="desc">AI lib with V</td>
+        <td class="lang">V</td>
+        <td class="num">1</td>
+        <td class="date">8 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/vf" target="_blank" rel="noopener">vf</a></td>
+        <td class="desc">VF CLI - V Language Fast Development Framework Command Line Tool</td>
+        <td class="lang">V</td>
+        <td class="num">1</td>
+        <td class="date">8 months ago</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/chy3xyz/rindexer" target="_blank" rel="noopener">rindexer</a></td>
+        <td class="desc">A no-code or framework to build blazing fast EVM indexers - built in rust.</td>
+        <td class="lang">—</td>
+        <td class="num">0</td>
+        <td class="date">11 months ago</td>
+        <td><a class="site" href="https://rindexer.xyz" target="_blank" rel="noopener">site ↗</a></td>
+      </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      Built by hand, no framework. Generated from the GitHub API.
+    </footer>
+  </div>
+<script>
+  const q = document.getElementById('q');
+  const rows = [...document.querySelectorAll('#rows tr')];
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase();
+    rows.forEach(r => {
+      r.style.display = !v || r.textContent.toLowerCase().includes(v) ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>
