@@ -10,11 +10,15 @@ import datetime
 import html
 import json
 import pathlib
+import re
 import subprocess
 import sys
 
 OWNER = "chy3xyz"
 FEATURED = ["ghw", "zdoc", "zigmodu", "zent", "zwechat", "zwasm", "zcordis", "zenaipa"]
+
+# CJK ideographs, kana, and hangul — the site copy is English-only.
+CJK = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]")
 
 HERE = pathlib.Path(__file__).parent
 
@@ -39,6 +43,18 @@ def fetch_repos():
         parts = (line.split("\t") + [""] * 6)[:6]
         repos.append(tuple(parts))
     return repos
+
+
+def find_non_ascii(repos):
+    """Return [(name, description)] for descriptions containing CJK characters.
+
+    The site is English-only, so these are reported rather than silently rendered.
+    """
+    hits = []
+    for name, desc, *_ in repos:
+        if desc and CJK.search(desc):
+            hits.append((name, desc))
+    return hits
 
 
 def esc(value):
@@ -126,6 +142,14 @@ def main():
             )
 
     repos = fetch_repos()
+
+    non_ascii = find_non_ascii(repos)
+    if non_ascii:
+        print("warning: non-English descriptions found:", file=sys.stderr)
+        for name, desc in non_ascii:
+            print(f"  {name}: {desc}", file=sys.stderr)
+        print("  site still English-only; translate with gh repo edit", file=sys.stderr)
+
     out = build(repos, template)
     (HERE / "index.html").write_text(out, encoding="utf-8")
 
