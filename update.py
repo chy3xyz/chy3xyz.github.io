@@ -114,8 +114,19 @@ def main():
     if not template_path.exists():
         sys.exit(f"missing template: {template_path}")
 
+    template = template_path.read_text(encoding="utf-8")
+
+    # Guard against a rendered file being copied over the template — placeholders
+    # would be gone and the page would silently freeze on stale data.
+    for token in ("__FEATURED__", "__ALL__", "__COUNT__"):
+        if token not in template:
+            sys.exit(
+                f"{template_path.name} has no {token} placeholder — it looks like a "
+                "rendered page, not a template. Restore the placeholders before running."
+            )
+
     repos = fetch_repos()
-    out = build(repos, template_path.read_text(encoding="utf-8"))
+    out = build(repos, template)
     (HERE / "index.html").write_text(out, encoding="utf-8")
 
     print(f"wrote index.html — {len(repos)} repos, {len(FEATURED)} featured")
